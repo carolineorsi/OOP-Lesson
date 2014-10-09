@@ -71,17 +71,30 @@ class Character(GameElement):
 class Doorguard(GameElement):
     SOLID = True
 
-    def __init__(self,image,item):
+    def __init__(self,image,item,key):
         self.IMAGE = image
         self.item = item
+        self.key = key
 
     def interact(self, player):
         for item in player.inventory:
             if item == self.item:
                 GAME_BOARD.draw_msg("Congrats! You may now open the door!")
+                player.inventory.append(self.key)
                 self.SOLID = False
                 return None
         GAME_BOARD.draw_msg("You need to give me the right item.")
+
+class Door(GameElement):
+    IMAGE = "DoorClosed"
+    SOLID = True
+
+    def interact(self, player):
+        for item in player.inventory:
+            if item == self.key:
+                self.IMAGE = "DoorOpen"
+                return None
+        GAME_BOARD.draw_msg("You need the right key.")
 
 class Gem(GameElement):
     IMAGE = "BlueGem"
@@ -160,15 +173,24 @@ def initialize():
 
     chest1.key = key1
 
-    doorguard1 = Doorguard("Horns", gem2)
+    door1 = Door()
+    GAME_BOARD.register(door1)
+    GAME_BOARD.set_el(5,6,door1)
+
+    doorkey1 = Key()
+    door1.key = doorkey1
+
+    door2 = Door()
+    GAME_BOARD.register(door2)
+    GAME_BOARD.set_el(0,6,door2)
+
+    doorkey2 = Key()
+    door2.key = doorkey2
+
+    doorguard1 = Doorguard("Horns", gem2, doorkey1)
     GAME_BOARD.register(doorguard1)
     GAME_BOARD.set_el(5,5,doorguard1)
 
-    doorguard2 = Doorguard("Cat", gem2)
+    doorguard2 = Doorguard("Cat", gem2, doorkey2)
     GAME_BOARD.register(doorguard2)
     GAME_BOARD.set_el(1,6,doorguard2)
-
-
-
-
-
