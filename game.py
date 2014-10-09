@@ -9,40 +9,95 @@ GAME_BOARD = None
 DEBUG = False
 ######################
 
-GAME_WIDTH = 5
-GAME_HEIGHT = 5
+GAME_WIDTH = 8
+GAME_HEIGHT = 8
 
 #### Put class definitions here ####
 class Rock(GameElement):
     IMAGE = "Rock"
+    SOLID = True
 
 class Character(GameElement):
     IMAGE = "Girl"
 
-    def keyboard_handler(self, symbol, modifier):
-        if symbol == key.UP:
-            self.board.draw_msg('%s says: "You pressed up!"' % self.IMAGE)
-            next_y = self.y-1
-            self.board.del_el(self.x, self.y)
-            self.board.set_el(self.x, next_y, self)
-        if symbol == key.DOWN:
-            self.board.draw_msg('%s says: "You pressed down!"' % self.IMAGE)
-            next_y = self.y+1
-            self.board.del_el(self.x, self.y)
-            self.board.set_el(self.x, next_y, self)
-        if symbol == key.RIGHT:
-            self.board.draw_msg('%s says: "You pressed right!"' % self.IMAGE)
-            next_x = self.x+1
-            self.board.del_el(self.x, self.y)
-            self.board.set_el(next_x, self.y, self)
-        if symbol == key.LEFT:
-            self.board.draw_msg('%s says: "You pressed left!"' % self.IMAGE)
-            next_x = self.x-1
-            self.board.del_el(self.x, self.y)
-            self.board.set_el(next_x, self.y, self)                        
-        elif symbol == key.SPACE:
-            self.board.erase_msg()
+    def next_pos(self, direction):
+        if direction == "up":
+            return (self.x, self.y-1)
+        elif direction == "down":
+            return (self.x, self.y+1)
+        elif direction == "left":
+            return (self.x-1, self.y)
+        elif direction == "right":
+            return (self.x+1, self.y)
+        return None
 
+    def keyboard_handler(self, symbol, modifier):
+        
+        direction = None
+        if symbol == key.UP:
+            direction = "up"
+        if symbol == key.DOWN:
+            direction = "down"
+        if symbol == key.RIGHT:
+            direction = "right"
+        if symbol == key.LEFT:
+            direction = "left"
+
+        self.board.draw_msg("[%s] moves %s" % (self.IMAGE, direction))
+
+        if direction:
+            next_location = self.next_pos(direction)
+            if next_location:
+                next_x = next_location[0]
+                next_y = next_location[1]
+                if next_x > GAME_WIDTH-1 or next_x < 0:
+                    self.board.draw_msg("I can't move that way!")
+                elif next_y > GAME_HEIGHT-1 or next_y < 0:
+                    self.board.draw_msg("I can't move that way!")
+                else:
+                    existing_el = self.board.get_el(next_x, next_y)
+                
+                    if existing_el:
+                        existing_el.interact(self)
+
+                    if existing_el and existing_el.SOLID:
+                        self.board.draw_msg("There's something in my way!")
+                    elif existing_el is None or not existing_el.SOLID:
+                        self.board.del_el(self.x, self.y)
+                        self.board.set_el(next_x, next_y, self)
+
+    def __init__(self):
+        GameElement.__init__(self)
+        self.inventory = []
+
+class Gem(GameElement):
+    IMAGE = "BlueGem"
+    SOLID = False
+
+    def interact(self, player):
+        player.inventory.append(self)
+        GAME_BOARD.draw_msg("You just acquired a gem! You have %d items" % (len(player.inventory)))
+
+class Key(GameElement):
+    IMAGE = "Key"
+    SOLID = False
+
+    def interact(self, player):
+        player.inventory.append(self)
+        GAME_BOARD.draw_msg("You just acquired a key! You have %d items" % (len(player.inventory)))
+        print player.inventory
+
+class Chest(GameElement):
+    IMAGE = "Chest"
+    SOLID = True
+    contents = None
+
+    def interact(self, player):
+        for item in player.inventory:
+            if item == self.key:
+                player.inventory.append(self.contents)
+                GAME_BOARD.draw_msg("You just acquired a gem! You have %d items" % (len(player.inventory)))
+                print "Got the key"
 ####   End class definitions    ####
 
 def initialize():
@@ -61,6 +116,8 @@ def initialize():
         GAME_BOARD.set_el(pos[0], pos[1], rock)
         rocks.append(rock)
 
+    rocks[-1].SOLID = False
+
     for rock in rocks:
         print rock
 
@@ -70,6 +127,25 @@ def initialize():
     print player
 
     GAME_BOARD.draw_msg("This game is wicked awesome.")
+
+    gem = Gem()
+    GAME_BOARD.register(gem)
+    GAME_BOARD.set_el(3,1,gem)
+
+    gem2 = Gem()
+
+    chest1 = Chest()
+    GAME_BOARD.register(chest1)
+    GAME_BOARD.set_el(0,0,chest1)
+    chest1.contents = gem2
+
+    key1 = Key()
+    GAME_BOARD.register(key1)
+    GAME_BOARD.set_el(4,2,key1)
+
+    chest1.key = key1
+
+
 
 
 
