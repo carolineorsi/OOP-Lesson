@@ -3,6 +3,7 @@ import pyglet
 class GameElement(object):
     IMAGE = "StoneBlock"
     SOLID = False
+    movable = False
     
     def __init__(self):
         self.sprite = None

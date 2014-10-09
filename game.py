@@ -16,6 +16,17 @@ GAME_HEIGHT = 7
 class Rock(GameElement):
     IMAGE = "Rock"
     SOLID = True 
+    movable = False
+
+    # def interact(self):
+    #     self.keyboard_handler
+
+    # def keyboard_handler(self, symbol,modifier):
+        
+    #     if self.movable:
+    #         if symbol == key.RIGHT:
+    #             self.board.del_el(self.x, self.y)
+    #             self.board.set_el(self.x+1, self.y, self)
 
 class Character(GameElement):
     IMAGE = "Girl"
@@ -43,8 +54,6 @@ class Character(GameElement):
         if symbol == key.LEFT:
             direction = "left"
 
-        self.board.draw_msg("[%s] moves %s" % (self.IMAGE, direction))
-
         if direction:
             next_location = self.next_pos(direction)
             if next_location:
@@ -59,6 +68,11 @@ class Character(GameElement):
                    
                     if existing_el:
                         existing_el.interact(self)
+                        if existing_el.movable:
+                            existing_el.board.del_el(existing_el.x, existing_el.y)
+                            new_x = existing_el.x + 1
+                            existing_el.board.set_el(new_x, existing_el.y, existing_el)
+                            existing_el.movable = False
 
                     if existing_el is None or not existing_el.SOLID:
                         self.board.del_el(self.x, self.y)
@@ -67,6 +81,7 @@ class Character(GameElement):
     def __init__(self):
         GameElement.__init__(self)
         self.inventory = []
+        self.interacted = []
 
 class Doorguard(GameElement):
     SOLID = True
@@ -83,6 +98,7 @@ class Doorguard(GameElement):
                 player.inventory.append(self.key)
                 self.SOLID = False
                 return None
+        self.speechbubble.board.set_el((self.x)+1, (self.y)-1, self.speechbubble)
         GAME_BOARD.draw_msg("You need to give me the right item.")
 
 class Door(GameElement):
@@ -94,11 +110,15 @@ class Door(GameElement):
         self.contents = contents
 
     def action(self, player):
+        for item in player.interacted:
+            if item == self:
+                return None
         if self.contents:
             player.inventory.append(self.contents)
             GAME_BOARD.draw_msg("You just acquired a heart!")
         else:
             GAME_BOARD.draw_msg("You advanced to a new level!")
+        player.interacted.append(self)
 
     def interact(self, player):
         for item in player.inventory:
@@ -134,22 +154,31 @@ class Chest(GameElement):
     contents = None
 
     def interact(self, player):
+        for item in player.interacted:
+            if item == self:
+                print item
+                return None
         for item in player.inventory:
             if item == self.key:
                 player.inventory.append(self.contents)
+                player.interacted.append(self)
                 GAME_BOARD.draw_msg("You just acquired a gem! You have %d items" % (len(player.inventory)))
+                self.change_image("ChestOpen")
                 return None
         GAME_BOARD.draw_msg("You need the right key.")
+
+class SpeechBubble(GameElement):
+    IMAGE = "SpeechBubble"
                 
 ####   End class definitions    ####
 
 def initialize():
     """Put game initialization code here"""
     rock_positions = [
-            (2, 1),
-            (1, 2),
-            (3, 2),
-            (2, 3) 
+            (5, 0),
+            (4, 1),
+            (6, 1),
+            (5, 2) 
         ]
 
     rocks = []
@@ -159,7 +188,7 @@ def initialize():
         GAME_BOARD.set_el(pos[0], pos[1], rock)
         rocks.append(rock)
 
-    rocks[-1].SOLID = False
+    rocks[0].movable = True
 
     for rock in rocks:
         print rock
@@ -179,18 +208,18 @@ def initialize():
 
     chest1 = Chest()
     GAME_BOARD.register(chest1)
-    GAME_BOARD.set_el(1,1,chest1)
+    GAME_BOARD.set_el(6,6,chest1)
     chest1.contents = gem2
 
     key1 = Key()
     GAME_BOARD.register(key1)
-    GAME_BOARD.set_el(4,2,key1)
+    GAME_BOARD.set_el(5,1,key1)
 
     chest1.key = key1
 
     door1 = Door()
     GAME_BOARD.register(door1)
-    GAME_BOARD.set_el(5,6,door1)
+    GAME_BOARD.set_el(0,1,door1)
 
     doorkey1 = Key()
     door1.key = doorkey1
@@ -206,8 +235,14 @@ def initialize():
 
     doorguard1 = Doorguard("Horns", heart, doorkey1)
     GAME_BOARD.register(doorguard1)
-    GAME_BOARD.set_el(5,5,doorguard1)
+    GAME_BOARD.set_el(1,1,doorguard1)
 
     doorguard2 = Doorguard("Cat", gem2, doorkey2)
     GAME_BOARD.register(doorguard2)
     GAME_BOARD.set_el(1,6,doorguard2)
+
+    speechbubble = SpeechBubble()
+    GAME_BOARD.register(speechbubble)
+
+    doorguard1.speechbubble = speechbubble
+    doorguard2.speechbubble = speechbubble

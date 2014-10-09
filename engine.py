@@ -34,6 +34,7 @@ def setup_images():
             "TallTree": "Tree Tall.png",
             "Rock": "Rock.png",
             "Chest": "Chest Closed.png",
+            "ChestOpen": "Chest Open.png",
             "DoorClosed": "Door Tall Closed.png",
             "DoorOpen": "Door Tall Open.png",
             "BlueGem": "Gem Blue.png",
@@ -45,7 +46,8 @@ def setup_images():
             "Cat": "Character Cat Girl.png",
             "Horns": "Character Horn Girl.png",
             "Girl": "Character Pink Girl.png",
-            "Princess": "Character Princess Girl.png"
+            "Princess": "Character Princess Girl.png",
+            "SpeechBubble": "SpeechBubble.png"
             }
 
     for k,v in filenames.items():
