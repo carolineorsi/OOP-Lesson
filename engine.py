@@ -47,7 +47,8 @@ def setup_images():
             "Horns": "Character Horn Girl.png",
             "Girl": "Character Pink Girl.png",
             "Princess": "Character Princess Girl.png",
-            "SpeechBubble": "SpeechBubble.png"
+            "SpeechBubble": "SpeechBubble.png",
+            "EnemyBug": "Enemy Bug.png"
             }
 
     for k,v in filenames.items():
@@ -119,7 +120,7 @@ def run():
     draw_list.append(board)
 
     # Set up the update clock
-    pyglet.clock.schedule_interval(update, 1/10.)
+    pyglet.clock.schedule_interval(update, 1/2.)
     game.initialize()
     pyglet.app.run()
 

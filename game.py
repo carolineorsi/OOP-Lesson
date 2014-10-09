@@ -3,6 +3,7 @@ import pyglet
 from pyglet.window import key
 from core import GameElement
 import sys
+import random
 
 #### DO NOT TOUCH ####
 GAME_BOARD = None
@@ -128,6 +129,7 @@ class Door(GameElement):
                 return None
         GAME_BOARD.draw_msg("You need the right key.")
 
+
 class Heart(GameElement):
     IMAGE = "Heart"
 
@@ -169,6 +171,45 @@ class Chest(GameElement):
 
 class SpeechBubble(GameElement):
     IMAGE = "SpeechBubble"
+
+class EnemyBug(GameElement):
+    IMAGE = "EnemyBug"
+    direction = 1
+
+    def update(self, dt):
+        self.board.del_el(self.x, self.y)
+
+        choose_axis = random.choice(["x","y"])
+        if choose_axis == "x":
+            next_x = self.x + random.choice([-1,1])
+            if next_x < 0 or next_x >= self.board.width:
+                self.direction *= -1
+                next_x = self.x
+            existing_el = self.board.get_el(next_x, self.y)
+            if existing_el:
+                self.board.set_el(self.x, self.y, self)
+            else:
+                self.board.set_el(next_x, self.y, self)
+        else:
+            next_y = self.y + random.choice([-1,1])       
+            if next_y < 0 or next_y >= self.board.width:
+                self.direction *= -1
+                next_y = self.y
+            existing_el = self.board.get_el(self.x, next_y)
+            if existing_el:
+                self.board.set_el(self.x, self.y, self)
+            else: 
+                self.board.set_el(self.x, next_y, self)
+
+            if existing_el == self.player:
+                GAME_BOARD.draw_msg("Game Over")
+                for x in range(GAME_WIDTH):
+                    for y in range(GAME_HEIGHT):
+                        existing_el = self.board.get_el(x, y)
+                        if existing_el:
+                            existing_el.board.del_el(x, y)
+
+
                 
 ####   End class definitions    ####
 
@@ -200,9 +241,9 @@ def initialize():
 
     GAME_BOARD.draw_msg("This game is wicked awesome.")
 
-    gem = Gem()
-    GAME_BOARD.register(gem)
-    GAME_BOARD.set_el(3,1,gem)
+    # gem = Gem()
+    # GAME_BOARD.register(gem)
+    # GAME_BOARD.set_el(3,1,gem)
 
     gem2 = Gem()
 
@@ -246,3 +287,9 @@ def initialize():
 
     doorguard1.speechbubble = speechbubble
     doorguard2.speechbubble = speechbubble
+
+    enemybug = EnemyBug()
+    GAME_BOARD.register(enemybug)
+    GAME_BOARD.set_el(3,6,enemybug)
+
+    enemybug.player = player
