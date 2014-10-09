@@ -88,13 +88,28 @@ class Doorguard(GameElement):
 class Door(GameElement):
     IMAGE = "DoorClosed"
     SOLID = True
+    contents = None
+
+    def __init__(self, contents=None):
+        self.contents = contents
+
+    def action(self, player):
+        if self.contents:
+            player.inventory.append(self.contents)
+            GAME_BOARD.draw_msg("You just acquired a heart!")
+        else:
+            GAME_BOARD.draw_msg("You advanced to a new level!")
 
     def interact(self, player):
         for item in player.inventory:
             if item == self.key:
-                self.IMAGE = "DoorOpen"
+                self.change_image("DoorOpen")
+                self.action(player)
                 return None
         GAME_BOARD.draw_msg("You need the right key.")
+
+class Heart(GameElement):
+    IMAGE = "Heart"
 
 class Gem(GameElement):
     IMAGE = "BlueGem"
@@ -180,14 +195,16 @@ def initialize():
     doorkey1 = Key()
     door1.key = doorkey1
 
-    door2 = Door()
+    heart = Heart()
+
+    door2 = Door(heart)
     GAME_BOARD.register(door2)
     GAME_BOARD.set_el(0,6,door2)
 
     doorkey2 = Key()
     door2.key = doorkey2
 
-    doorguard1 = Doorguard("Horns", gem2, doorkey1)
+    doorguard1 = Doorguard("Horns", heart, doorkey1)
     GAME_BOARD.register(doorguard1)
     GAME_BOARD.set_el(5,5,doorguard1)
 
