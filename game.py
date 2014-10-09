@@ -9,13 +9,13 @@ GAME_BOARD = None
 DEBUG = False
 ######################
 
-GAME_WIDTH = 8
-GAME_HEIGHT = 8
+GAME_WIDTH = 7
+GAME_HEIGHT = 7
 
 #### Put class definitions here ####
 class Rock(GameElement):
     IMAGE = "Rock"
-    SOLID = True
+    SOLID = True 
 
 class Character(GameElement):
     IMAGE = "Girl"
@@ -56,19 +56,32 @@ class Character(GameElement):
                     self.board.draw_msg("I can't move that way!")
                 else:
                     existing_el = self.board.get_el(next_x, next_y)
-                
+                   
                     if existing_el:
                         existing_el.interact(self)
 
-                    if existing_el and existing_el.SOLID:
-                        self.board.draw_msg("There's something in my way!")
-                    elif existing_el is None or not existing_el.SOLID:
+                    if existing_el is None or not existing_el.SOLID:
                         self.board.del_el(self.x, self.y)
                         self.board.set_el(next_x, next_y, self)
 
     def __init__(self):
         GameElement.__init__(self)
         self.inventory = []
+
+class Doorguard(GameElement):
+    SOLID = True
+
+    def __init__(self,image,item):
+        self.IMAGE = image
+        self.item = item
+
+    def interact(self, player):
+        for item in player.inventory:
+            if item == self.item:
+                GAME_BOARD.draw_msg("Congrats! You may now open the door!")
+                self.SOLID = False
+                return None
+        GAME_BOARD.draw_msg("You need to give me the right item.")
 
 class Gem(GameElement):
     IMAGE = "BlueGem"
@@ -97,7 +110,9 @@ class Chest(GameElement):
             if item == self.key:
                 player.inventory.append(self.contents)
                 GAME_BOARD.draw_msg("You just acquired a gem! You have %d items" % (len(player.inventory)))
-                print "Got the key"
+                return None
+        GAME_BOARD.draw_msg("You need the right key.")
+                
 ####   End class definitions    ####
 
 def initialize():
@@ -136,7 +151,7 @@ def initialize():
 
     chest1 = Chest()
     GAME_BOARD.register(chest1)
-    GAME_BOARD.set_el(0,0,chest1)
+    GAME_BOARD.set_el(1,1,chest1)
     chest1.contents = gem2
 
     key1 = Key()
@@ -144,6 +159,14 @@ def initialize():
     GAME_BOARD.set_el(4,2,key1)
 
     chest1.key = key1
+
+    doorguard1 = Doorguard("Horns", gem2)
+    GAME_BOARD.register(doorguard1)
+    GAME_BOARD.set_el(5,5,doorguard1)
+
+    doorguard2 = Doorguard("Cat", gem2)
+    GAME_BOARD.register(doorguard2)
+    GAME_BOARD.set_el(1,6,doorguard2)
 
 
 
