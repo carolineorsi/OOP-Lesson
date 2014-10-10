@@ -69,6 +69,8 @@ class Character(GameElement):
                    
                     if existing_el:
                         existing_el.interact(self)
+                        if type(existing_el) == EnemyBug:
+                            end_game()
                         if existing_el.movable:
                             existing_el.board.del_el(existing_el.x, existing_el.y)
                             new_x = existing_el.x + 1
@@ -118,7 +120,7 @@ class Door(GameElement):
             player.inventory.append(self.contents)
             GAME_BOARD.draw_msg("You just acquired a heart!")
         else:
-            GAME_BOARD.draw_msg("You advanced to a new level!")
+            win_game()
         player.interacted.append(self)
 
     def interact(self, player):
@@ -202,15 +204,17 @@ class EnemyBug(GameElement):
                 self.board.set_el(self.x, next_y, self)
 
             if existing_el == self.player:
-                GAME_BOARD.draw_msg("Game Over")
-                for x in range(GAME_WIDTH):
-                    for y in range(GAME_HEIGHT):
-                        existing_el = self.board.get_el(x, y)
-                        if existing_el:
-                            existing_el.board.del_el(x, y)
-
-
+                end_game()
+                             
+class GameOver(GameElement):
+    IMAGE = "GameOver"
                 
+class Princess(GameElement):
+    IMAGE = "Princess"
+
+class YouWin(GameElement):
+    IMAGE = "YouWin"
+
 ####   End class definitions    ####
 
 def initialize():
@@ -239,8 +243,6 @@ def initialize():
     GAME_BOARD.set_el(2, 2, player)
     print player
 
-    GAME_BOARD.draw_msg("This game is wicked awesome.")
-
     # gem = Gem()
     # GAME_BOARD.register(gem)
     # GAME_BOARD.set_el(3,1,gem)
@@ -251,6 +253,14 @@ def initialize():
     GAME_BOARD.register(chest1)
     GAME_BOARD.set_el(6,6,chest1)
     chest1.contents = gem2
+
+    key2 = Key()
+    GAME_BOARD.register(key2)
+    GAME_BOARD.set_el(4,0,key2)
+
+    key3 = Key()
+    GAME_BOARD.register(key3)
+    GAME_BOARD.set_el(4,2,key3)
 
     key1 = Key()
     GAME_BOARD.register(key1)
@@ -276,7 +286,7 @@ def initialize():
 
     doorguard1 = Doorguard("Horns", heart, doorkey1)
     GAME_BOARD.register(doorguard1)
-    GAME_BOARD.set_el(1,1,doorguard1)
+    GAME_BOARD.set_el(0,2,doorguard1)
 
     doorguard2 = Doorguard("Cat", gem2, doorkey2)
     GAME_BOARD.register(doorguard2)
@@ -293,3 +303,32 @@ def initialize():
     GAME_BOARD.set_el(3,6,enemybug)
 
     enemybug.player = player
+
+def end_game():
+    gameover = GameOver()
+    GAME_BOARD.register(gameover)   
+
+    for x in range(GAME_WIDTH):
+        for y in range(GAME_HEIGHT):
+            existing_el = GAME_BOARD.get_el(x, y)
+            if existing_el:
+                existing_el.board.del_el(x, y)
+    GAME_BOARD.set_el(1,3,gameover)
+
+def win_game():
+    princess = Princess()
+    GAME_BOARD.register(princess)   
+    win = YouWin()
+    GAME_BOARD.register(win)
+
+    global enemybug
+    enemybug = None
+
+    for x in range(GAME_WIDTH):
+        for y in range(GAME_HEIGHT):
+            existing_el = GAME_BOARD.get_el(x, y)
+            if existing_el:
+                existing_el.board.del_el(x, y)
+
+    GAME_BOARD.set_el(3,1,princess)
+    GAME_BOARD.set_el(0,3,win)
