@@ -90,7 +90,7 @@ class Character(GameElement):
                         self.move_count += 1
                         print self.move_count
 
-                    if self.x == 3 and self.y == 2:
+                    if (self.x == 3 and self.y == 2) or (self.x == 1 and self.y == 4):
                         end_game()
 
     def __init__(self):
@@ -303,20 +303,21 @@ def end_game():
     GAME_BOARD.draw_msg("Game Over")
 
 def win_game():
-    princess = Princess()
-    GAME_BOARD.register(princess)   
-    win = YouWin()
-    GAME_BOARD.register(win)
-
     global game_ended
     game_ended = True
 
     for item in GAME_BOARD.update_list:
         if (0 <= item.x < GAME_BOARD.width) and (0 <= item.y < GAME_BOARD.height):
             item.board.del_el(item.x, item.y)
-
+    
+    princess = Princess()
+    GAME_BOARD.register(princess)   
     GAME_BOARD.set_el(3,1,princess)
+
+    win = YouWin()
+    GAME_BOARD.register(win)
     GAME_BOARD.set_el(1,3,win)
+
     GAME_BOARD.draw_msg("You Win!")
 
 game_ended = False

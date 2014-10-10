@@ -46,6 +46,7 @@ class Board(object):
             row = ["GrassBlock"] * self.width
             game_map.append(row)
         game_map[2][3] = "WaterBlock"
+        game_map[4][1] = "WaterBlock"
         
         self.base_board = game_map
         self.content_layer = []
