@@ -31,6 +31,7 @@ class Rock(GameElement):
 
 class Character(GameElement):
     IMAGE = "Girl"
+    move_count = 0
 
     def next_pos(self, direction):
         if direction == "up":
@@ -45,15 +46,21 @@ class Character(GameElement):
 
     def keyboard_handler(self, symbol, modifier):
         
+        if self.move_count >= 50:
+            end_game()
+        
         direction = None
-        if symbol == key.UP:
-            direction = "up"
-        if symbol == key.DOWN:
-            direction = "down"
-        if symbol == key.RIGHT:
-            direction = "right"
-        if symbol == key.LEFT:
-            direction = "left"
+        if game_ended == True:
+            direction = None
+        else:
+            if symbol == key.UP:
+                direction = "up"
+            if symbol == key.DOWN:
+                direction = "down"
+            if symbol == key.RIGHT:
+                direction = "right"
+            if symbol == key.LEFT:
+                direction = "left"
 
         if direction:
             next_location = self.next_pos(direction)
@@ -80,6 +87,8 @@ class Character(GameElement):
                     if existing_el is None or not existing_el.SOLID:
                         self.board.del_el(self.x, self.y)
                         self.board.set_el(next_x, next_y, self)
+                        self.move_count += 1
+                        print self.move_count
 
                     if self.x == 3 and self.y == 2:
                         end_game()
@@ -107,44 +116,44 @@ class Doorguard(GameElement):
         self.speechbubble.board.set_el((self.x)+1, (self.y)-1, self.speechbubble)
         GAME_BOARD.draw_msg("You need to give me the right item.")
 
-class Door(GameElement):
-    IMAGE = "DoorClosed"
+class Containers(GameElement):
     SOLID = True
-    contents = None
 
     def __init__(self, contents=None):
         self.contents = contents
 
-    def action(self, player):
+    def interact(self, player):
         for item in player.interacted:
             if item == self:
                 return None
-        if self.contents:
-            player.inventory.append(self.contents)
-            GAME_BOARD.draw_msg("You just acquired a heart!")
-        else:
-            win_game()
-        player.interacted.append(self)
-
-    def interact(self, player):
         for item in player.inventory:
             if item == self.key:
-                self.change_image("DoorOpen")
+                player.interacted.append(self)
+                self.change_image(self.openimage)
                 self.action(player)
                 return None
         GAME_BOARD.draw_msg("You need the right key.")
 
+    def append_contents(self,player):
+        player.inventory.append(self.contents)
+        GAME_BOARD.draw_msg("You just acquired a %s!" % self.contents)
 
-class Heart(GameElement):
-    IMAGE = "Heart"
+class Door(Containers):
+    IMAGE = "DoorClosed"
+    openimage = "DoorOpen"
 
-class Gem(GameElement):
-    IMAGE = "BlueGem"
-    SOLID = False
+    def action(self, player):
+        if self.contents:
+            self.append_contents(player)
+        else:
+            win_game()
 
-    def interact(self, player):
-        player.inventory.append(self)
-        GAME_BOARD.draw_msg("You just acquired a gem! You have %d items" % (len(player.inventory)))
+class Chest(Containers):
+    IMAGE = "Chest"
+    openimage = "ChestOpen"
+
+    def action(self, player):
+        self.append_contents(player)
 
 class Key(GameElement):
     IMAGE = "Key"
@@ -155,25 +164,6 @@ class Key(GameElement):
         GAME_BOARD.draw_msg("You just acquired a key! You have %d items" % (len(player.inventory)))
         print player.inventory
 
-class Chest(GameElement):
-    IMAGE = "Chest"
-    SOLID = True
-    contents = None
-
-    def interact(self, player):
-        for item in player.interacted:
-            if item == self:
-                print item
-                return None
-        for item in player.inventory:
-            if item == self.key:
-                player.inventory.append(self.contents)
-                player.interacted.append(self)
-                GAME_BOARD.draw_msg("You just acquired a gem! You have %d items" % (len(player.inventory)))
-                self.change_image("ChestOpen")
-                return None
-        GAME_BOARD.draw_msg("You need the right key.")
-
 class SpeechBubble(GameElement):
     IMAGE = "SpeechBubble"
 
@@ -183,6 +173,9 @@ class EnemyBug(GameElement):
 
     def update(self, dt):
         self.board.del_el(self.x, self.y)
+
+        if game_ended == True:
+            return None
 
         choose_axis = random.choice(["x","y"])
         if choose_axis == "x":
@@ -246,16 +239,9 @@ def initialize():
     GAME_BOARD.set_el(2, 2, player)
     print player
 
-    # gem = Gem()
-    # GAME_BOARD.register(gem)
-    # GAME_BOARD.set_el(3,1,gem)
-
-    gem2 = Gem()
-
-    chest1 = Chest()
+    chest1 = Chest("gem")
     GAME_BOARD.register(chest1)
     GAME_BOARD.set_el(6,6,chest1)
-    chest1.contents = gem2
 
     key2 = Key()
     GAME_BOARD.register(key2)
@@ -278,20 +264,18 @@ def initialize():
     doorkey1 = Key()
     door1.key = doorkey1
 
-    heart = Heart()
-
-    door2 = Door(heart)
+    door2 = Door("heart")
     GAME_BOARD.register(door2)
     GAME_BOARD.set_el(0,6,door2)
 
     doorkey2 = Key()
     door2.key = doorkey2
 
-    doorguard1 = Doorguard("Horns", heart, doorkey1)
+    doorguard1 = Doorguard("Horns", "heart", doorkey1)
     GAME_BOARD.register(doorguard1)
     GAME_BOARD.set_el(0,2,doorguard1)
 
-    doorguard2 = Doorguard("Cat", gem2, doorkey2)
+    doorguard2 = Doorguard("Cat", "gem", doorkey2)
     GAME_BOARD.register(doorguard2)
     GAME_BOARD.set_el(1,6,doorguard2)
 
@@ -312,12 +296,11 @@ def end_game():
     gameover = GameOver()
     GAME_BOARD.register(gameover)   
 
-    for x in range(GAME_WIDTH):
-        for y in range(GAME_HEIGHT):
-            existing_el = GAME_BOARD.get_el(x, y)
-            if existing_el:
-                existing_el.board.del_el(x, y)
+    for item in GAME_BOARD.update_list:
+        if (0 <= item.x < GAME_BOARD.width) and (0 <= item.y < GAME_BOARD.height):
+            item.board.del_el(item.x, item.y)
     GAME_BOARD.set_el(1,3,gameover)
+    GAME_BOARD.draw_msg("Game Over")
 
 def win_game():
     princess = Princess()
@@ -325,11 +308,15 @@ def win_game():
     win = YouWin()
     GAME_BOARD.register(win)
 
-    for x in range(GAME_WIDTH):
-        for y in range(GAME_HEIGHT):
-            existing_el = GAME_BOARD.get_el(x, y)
-            if existing_el:
-                existing_el.board.del_el(x, y)
+    global game_ended
+    game_ended = True
+
+    for item in GAME_BOARD.update_list:
+        if (0 <= item.x < GAME_BOARD.width) and (0 <= item.y < GAME_BOARD.height):
+            item.board.del_el(item.x, item.y)
 
     GAME_BOARD.set_el(3,1,princess)
-    GAME_BOARD.set_el(0,3,win)
+    GAME_BOARD.set_el(1,3,win)
+    GAME_BOARD.draw_msg("You Win!")
+
+game_ended = False

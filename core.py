@@ -4,6 +4,9 @@ class GameElement(object):
     IMAGE = "StoneBlock"
     SOLID = False
     movable = False
+
+    def remove(self):
+        self.board.del_el(self.x, self.y)
     
     def __init__(self):
         self.sprite = None
