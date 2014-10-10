@@ -41,14 +41,11 @@ class Board(object):
     def draw_board(self):
         # Make a map with a stoneblock border and filled with grass
         game_map = []
-        inner_width = self.width-2
+        #inner_width = self.width-2
         for i in range(self.height):
-            if i == 0 or i == self.height-1:
-                # On the boundaries
-                game_map.append(["Block"] * self.width)
-            else:
-                row = ["Block"] + (["GrassBlock"] * inner_width) + ["Block"]
-                game_map.append(row)
+            row = ["GrassBlock"] * self.width
+            game_map.append(row)
+        game_map[2][3] = "WaterBlock"
         
         self.base_board = game_map
         self.content_layer = []

@@ -81,6 +81,9 @@ class Character(GameElement):
                         self.board.del_el(self.x, self.y)
                         self.board.set_el(next_x, next_y, self)
 
+                    if self.x == 3 and self.y == 2:
+                        end_game()
+
     def __init__(self):
         GameElement.__init__(self)
         self.inventory = []
@@ -303,6 +306,7 @@ def initialize():
     GAME_BOARD.set_el(3,6,enemybug)
 
     enemybug.player = player
+
 
 def end_game():
     gameover = GameOver()
