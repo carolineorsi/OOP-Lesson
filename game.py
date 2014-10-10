@@ -321,9 +321,6 @@ def win_game():
     win = YouWin()
     GAME_BOARD.register(win)
 
-    global enemybug
-    enemybug = None
-
     for x in range(GAME_WIDTH):
         for y in range(GAME_HEIGHT):
             existing_el = GAME_BOARD.get_el(x, y)
