@@ -88,7 +88,6 @@ class Character(GameElement):
                         self.board.del_el(self.x, self.y)
                         self.board.set_el(next_x, next_y, self)
                         self.move_count += 1
-                        print self.move_count
 
                     if (self.x == 3 and self.y == 2) or (self.x == 1 and self.y == 4):
                         end_game()
@@ -162,7 +161,6 @@ class Key(GameElement):
     def interact(self, player):
         player.inventory.append(self)
         GAME_BOARD.draw_msg("You just acquired a key! You have %d items" % (len(player.inventory)))
-        print player.inventory
 
 class SpeechBubble(GameElement):
     IMAGE = "SpeechBubble"
@@ -231,13 +229,9 @@ def initialize():
 
     rocks[0].movable = True
 
-    for rock in rocks:
-        print rock
-
     player = Character()
     GAME_BOARD.register(player)
     GAME_BOARD.set_el(2, 2, player)
-    print player
 
     chest1 = Chest("gem")
     GAME_BOARD.register(chest1)
@@ -296,15 +290,18 @@ def end_game():
     gameover = GameOver()
     GAME_BOARD.register(gameover)   
 
+    GAME_BOARD.draw_msg("Game Over")
+
     for item in GAME_BOARD.update_list:
         if (0 <= item.x < GAME_BOARD.width) and (0 <= item.y < GAME_BOARD.height):
             item.board.del_el(item.x, item.y)
     GAME_BOARD.set_el(1,3,gameover)
-    GAME_BOARD.draw_msg("Game Over")
 
 def win_game():
     global game_ended
     game_ended = True
+
+    GAME_BOARD.draw_msg("You Win!")
 
     for item in GAME_BOARD.update_list:
         if (0 <= item.x < GAME_BOARD.width) and (0 <= item.y < GAME_BOARD.height):
@@ -317,7 +314,6 @@ def win_game():
     win = YouWin()
     GAME_BOARD.register(win)
     GAME_BOARD.set_el(1,3,win)
-
-    GAME_BOARD.draw_msg("You Win!")
+    
 
 game_ended = False
